@@ -12,9 +12,9 @@
     <description>MAC Whisperer Connector provides capabilities to convert speech to text or text to speech.</description>
     <url>https://mac-project.ai/docs/mac-whisperer/connector-overview</url>
     <scm>
-        <connection>scm:git:git://github.com/MuleSoft-AI-Chain-Project/mule-whisperer-connector.git</connection>
-        <developerConnection>scm:git:ssh://github.com:MuleSoft-AI-Chain-Project/mule-whisperer-connector.git</developerConnection>
-        <url>https://github.com/MuleSoft-AI-Chain-Project/mule-whisperer-connector/tree/master</url>
+        <connection>scm:git:git://github.com/anypointcloud/mac-whisperer.git</connection>
+        <developerConnection>scm:git:git@github.com:anypointcloud/mac-whisperer.git</developerConnection>
+        <url>https://github.com/anypointcloud/mac-whisperer/tree/master</url>
     </scm>
 
     <licenses>
