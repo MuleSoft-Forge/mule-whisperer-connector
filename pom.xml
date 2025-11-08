@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>cloud.anypoint</groupId>
     <artifactId>mule-whisperer-connector</artifactId>
-    <version>0.4.0</version>
+    <version>0.4.1-SNAPSHOT</version>
     <packaging>mule-extension</packaging>
     <name>MAC Whisperer Connector</name>
     <description>MAC Whisperer Connector provides capabilities to convert speech to text or text to speech.</description>
@@ -13,7 +13,7 @@
         <connection>scm:git:git://github.com/anypointcloud/mac-whisperer.git</connection>
         <developerConnection>scm:git:git@github.com:anypointcloud/mac-whisperer.git</developerConnection>
         <url>https://github.com/anypointcloud/mac-whisperer/tree/master</url>
-      <tag>v0.4.0</tag>
+      <tag>HEAD</tag>
   </scm>
 
     <licenses>
