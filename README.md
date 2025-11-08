@@ -5,6 +5,49 @@
 
 ### <img src="icon/icon.svg" width="6%" alt="banner">   [MuleSoft Whisperer Connector](https://mac-project.ai/docs/mac-whisperer/connector-overview)
 
+## Breaking Changes in v0.4.0
+
+### Configuration Architecture Change
+
+Version 0.4.0 introduces a breaking change to the configuration architecture. All applications using previous versions (v0.3.x or earlier) must update their XML configuration before upgrading.
+
+The unified `<whisperer:config>` element has been removed and replaced with separate configuration elements:
+- `<whisperer:speech-to-text-config>` for Speech-to-Text operations
+- `<whisperer:text-to-speech-config>` for Text-to-Speech operations
+
+This change enables better separation of concerns, future Speech-to-Speech (STS) support, improved type safety, and aligns with standard MuleSoft connector architecture patterns.
+
+### Migration Guide
+
+Before (v0.3.x):
+```xml
+<whisperer:config name="Whisperer_Config" apiKey="${openai.api.key}" />
+
+<flow name="transcribe-audio-flow">
+    <whisperer:speech-to-text config-ref="Whisperer_Config">
+        <whisperer:audio-file>#[payload]</whisperer:audio-file>
+    </whisperer:speech-to-text>
+</flow>
+```
+
+After (v0.4.0+):
+```xml
+<whisperer:speech-to-text-config name="STT_Config" apiKey="${openai.api.key}" />
+
+<flow name="transcribe-audio-flow">
+    <whisperer:speech-to-text config-ref="STT_Config">
+        <whisperer:audio-file>#[payload]</whisperer:audio-file>
+    </whisperer:speech-to-text>
+</flow>
+```
+
+Migration steps:
+1. Replace `<whisperer:config>` with `<whisperer:speech-to-text-config>` or `<whisperer:text-to-speech-config>`
+2. Update all `config-ref` attributes to reference new config names
+3. Test all flows before deploying to production
+
+See CHANGELOG.md for complete details.
+
 MAC Whisperer supports 2 main use cases,
 - **Speech-to-Text**: Converts audio files (wav, mp3, etc.) into text
 - **Text-to-Speech**: Converts text to audio files (wav, mp3, etc.)

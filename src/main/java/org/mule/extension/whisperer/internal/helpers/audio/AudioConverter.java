@@ -51,7 +51,9 @@ public class AudioConverter {
     }
 
     /**
-     * Converts an audio file to WAV format (16kHz, Mono, 16-bit PCM).
+     * Converts an audio file to WAV format.
+     * NOTE: Output sample rate and channels are preserved from the source file.
+     * Use AudioFileReader.readFile() for automatic resampling to 16kHz mono (required by WhisperJNI).
      *
      * @param inputPath Path to the input audio file
      * @param outputPath Path where the WAV file should be written
@@ -76,7 +78,7 @@ public class AudioConverter {
                 break;
 
             case "mp3":
-                // Use JLayer (always available)
+                // Use JLayer (always available) - preserves original sample rate
                 try {
                     Mp3ToWavConverter.convertMp3ToWav(inputPath, outputPath);
                     LOGGER.debug("MP3 conversion completed using JLayer");

@@ -38,13 +38,12 @@ import static org.bytedeco.ffmpeg.global.swresample.*;
  * This class is only used when ByteDeco FFmpeg is available in the classpath.
  *
  * Uses ByteDeco's Java API (not command-line execution), eliminating PATH dependencies.
+ * Preserves original sample rate and channels - use AudioFileReader.readFile() for 16kHz mono conversion.
  */
 public class ByteDecoConverter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ByteDecoConverter.class);
 
-    private static final int TARGET_SAMPLE_RATE = 16000;  // 16kHz required by WhisperJNI
-    private static final int TARGET_CHANNELS = 1;          // Mono required by WhisperJNI
     private static final int TARGET_SAMPLE_FORMAT = AV_SAMPLE_FMT_S16;  // 16-bit PCM
 
     static {
@@ -67,7 +66,8 @@ public class ByteDecoConverter {
     }
 
     /**
-     * Converts audio file to WAV format (16kHz, Mono, 16-bit PCM) using ByteDeco FFmpeg.
+     * Converts audio file to WAV format (16-bit PCM) using ByteDeco FFmpeg.
+     * Preserves original sample rate and channel count.
      *
      * @param inputPath Path to input audio file (M4A, AAC, FLAC, OGG, WEBM, etc.)
      * @param outputPath Path where WAV file should be written
@@ -128,17 +128,19 @@ public class ByteDecoConverter {
                 throw new IOException("Could not open codec");
             }
 
-            LOGGER.debug("Input audio: {} Hz, {} channels, format: {}",
-                    codecContext.sample_rate(),
-                    codecContext.channels(),
-                    codecContext.sample_fmt());
+            // Preserve original sample rate and channels
+            int outputSampleRate = codecContext.sample_rate();
+            int outputChannels = codecContext.channels();
 
-            // Step 7: Setup resampler for 16kHz mono conversion
+            LOGGER.debug("Input audio: {} Hz, {} channels, format: {}",
+                    outputSampleRate, outputChannels, codecContext.sample_fmt());
+
+            // Step 7: Setup resampler to convert to 16-bit PCM (preserve sample rate and channels)
             swrContext = swr_alloc_set_opts(
                     null,
-                    av_get_default_channel_layout(TARGET_CHANNELS),  // Output channel layout (mono)
+                    av_get_default_channel_layout(outputChannels),   // Output channel layout (preserve)
                     TARGET_SAMPLE_FORMAT,                            // Output sample format (16-bit PCM)
-                    TARGET_SAMPLE_RATE,                              // Output sample rate (16kHz)
+                    outputSampleRate,                                // Output sample rate (preserve)
                     av_get_default_channel_layout(codecContext.channels()), // Input channel layout
                     codecContext.sample_fmt(),                       // Input sample format
                     codecContext.sample_rate(),                      // Input sample rate
@@ -154,11 +156,11 @@ public class ByteDecoConverter {
             resampledFrame = av_frame_alloc();
             packet = av_packet_alloc();
 
-            // Configure resampled frame
+            // Configure resampled frame (preserves source sample rate and channels)
             resampledFrame.format(TARGET_SAMPLE_FORMAT);
-            resampledFrame.channel_layout(av_get_default_channel_layout(TARGET_CHANNELS));
-            resampledFrame.sample_rate(TARGET_SAMPLE_RATE);
-            resampledFrame.nb_samples(TARGET_SAMPLE_RATE); // 1 second buffer
+            resampledFrame.channel_layout(av_get_default_channel_layout(outputChannels));
+            resampledFrame.sample_rate(outputSampleRate);
+            resampledFrame.nb_samples(outputSampleRate); // 1 second buffer
 
             av_frame_get_buffer(resampledFrame, 0);
 
@@ -185,7 +187,7 @@ public class ByteDecoConverter {
                             throw new IOException("Error during decoding");
                         }
 
-                        // Resample to 16kHz mono
+                        // Convert to 16-bit PCM (preserve sample rate and channels)
                         int outSamples = swr_convert(
                                 swrContext,
                                 resampledFrame.data(),
@@ -260,11 +262,11 @@ public class ByteDecoConverter {
                     .asShortBuffer()
                     .put(allSamples);
 
-            // Step 12: Write WAV file using Java Sound API
+            // Step 12: Write WAV file using Java Sound API (preserves original sample rate and channels)
             AudioFormat audioFormat = new AudioFormat(
-                    TARGET_SAMPLE_RATE,     // Sample rate
+                    outputSampleRate,        // Sample rate (preserved from source)
                     16,                      // Sample size in bits
-                    TARGET_CHANNELS,         // Channels
+                    outputChannels,          // Channels (preserved from source)
                     true,                    // Signed
                     false                    // Little-endian
             );
@@ -277,7 +279,8 @@ public class ByteDecoConverter {
                 AudioSystem.write(audioInputStream, AudioFileFormat.Type.WAVE, new File(outputPath));
             }
 
-            LOGGER.debug("Successfully converted {} to {}", inputPath, outputPath);
+            LOGGER.debug("Successfully converted {} to WAV: {} Hz, {} channels",
+                    inputPath, outputSampleRate, outputChannels);
 
         } catch (Exception e) {
             throw new IOException("Failed to convert audio file using ByteDeco FFmpeg: " + e.getMessage(), e);

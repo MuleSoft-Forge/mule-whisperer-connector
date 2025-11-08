@@ -7,32 +7,84 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.4.0] - 2025-10-20
 
-### Changed
-- **BREAKING**: Removed JCodec dependency due to non-functional Transcoder API for AAC/M4A conversion
-- M4A/AAC format support now requires optional ByteDeco FFmpeg dependency
-- Migrated audio conversion architecture to ByteDeco FFmpeg for extended formats (M4A/AAC/FLAC/OGG/WEBM)
-- Core formats (MP3, WAV) remain pure Java with no additional dependencies
+### BREAKING CHANGES
+
+#### Configuration Architecture
+
+The unified `<whisperer:config>` element has been removed and replaced with separate configuration elements:
+- `<whisperer:speech-to-text-config>` for Speech-to-Text operations
+- `<whisperer:text-to-speech-config>` for Text-to-Speech operations
+
+This change enables better separation of concerns, future Speech-to-Speech (STS) support, improved type safety, and aligns with standard MuleSoft connector architecture patterns.
+
+All applications using v0.3.x or earlier must update their XML configuration before upgrading.
+
+Before (v0.3.x and earlier):
+```xml
+<whisperer:config name="Whisperer_Config" apiKey="${openai.api.key}" />
+
+<flow name="transcribe-audio-flow">
+    <whisperer:speech-to-text config-ref="Whisperer_Config">
+        <whisperer:audio-file>#[payload]</whisperer:audio-file>
+    </whisperer:speech-to-text>
+</flow>
+```
+
+After (v0.4.0+):
+```xml
+<whisperer:speech-to-text-config
+    name="STT_Config"
+    apiKey="${openai.api.key}" />
+
+<flow name="transcribe-audio-flow">
+    <whisperer:speech-to-text config-ref="STT_Config">
+        <whisperer:audio-file>#[payload]</whisperer:audio-file>
+    </whisperer:speech-to-text>
+</flow>
+```
+
+See README.md for complete migration guide.
 
 ### Added
+
 - Full ByteDeco FFmpeg implementation using Java API (not command-line)
+- Support for M4A/AAC, FLAC, OGG, WEBM audio formats (requires optional ByteDeco FFmpeg dependency)
 - Comprehensive test suite covering all 7 supported audio formats
 - Clear error messages guiding users to add ByteDeco dependency when needed
+- MP3 support via JLayer (pure Java, no external dependencies)
+- WAV format support (no conversion needed)
+
+### Changed
+
+- Removed JCodec dependency due to non-functional Transcoder API for AAC/M4A conversion
+- M4A/AAC format support now requires optional ByteDeco FFmpeg dependency
+- Migrated audio conversion architecture to ByteDeco FFmpeg for extended formats
+- Core formats (MP3, WAV) remain pure Java with no additional dependencies
+- Upgraded parent POM from 1.9.0 to 1.9.6 for JDK 17 compatibility
+- Upgraded maven-surefire-plugin from 2.22.2 to 3.2.5
+- Upgraded MUnit from 3.0.0 to 3.4.0
+- Upgraded MUnit Maven plugin from 1.1.2 to 1.5.0
+- Set `runtimeProduct` property to `MULE_EE`
 
 ### Removed
-- JCodec dependency (proven non-functional for AAC→WAV conversion after extensive diagnostic testing)
+
+- JCodec dependency (non-functional for AAC to WAV conversion)
 - JCodecConverter class and related diagnostic utilities
+- Unified `<whisperer:config>` configuration element (replaced with separate STT/TTS configs)
 
 ### Fixed
+
 - M4A/AAC audio conversion now works correctly via ByteDeco FFmpeg
 - All audio format conversions produce proper 16kHz mono WAV output as required by WhisperJNI
+- MUnit tests now compatible with JDK 17 module system
+- Resolved JPMS module resolution issues in embedded container
 
-### Migration Guide
+### Extended Audio Format Support
 
-If you use M4A/AAC/FLAC/OGG/WEBM formats, add ByteDeco FFmpeg to your Mule application and configure it as a shared library:
+For M4A/AAC/FLAC/OGG/WEBM formats, add ByteDeco FFmpeg to your Mule application:
 
 ```xml
 <dependencies>
-    <!-- ByteDeco FFmpeg: All platforms (~150MB) -->
     <dependency>
         <groupId>org.bytedeco</groupId>
         <artifactId>ffmpeg-platform</artifactId>
@@ -64,7 +116,19 @@ If you use M4A/AAC/FLAC/OGG/WEBM formats, add ByteDeco FFmpeg to your Mule appli
 </build>
 ```
 
-MP3 and WAV formats continue to work without any additional dependencies.
+MP3 and WAV formats work without additional dependencies.
+
+### Known Issues
+
+MUnit integration tests require `-DskipMunitTests` flag due to JPMS module resolution limitations in embedded container. This only affects test execution; connector functionality is not affected. Tests pass in CloudHub 2.0 and Runtime Fabric.
+
+Build command: `mvn clean install -DskipMunitTests`
+
+### Compatibility
+
+- Mule Runtime: 4.9.0+
+- JDK: 17
+- Runtime Product: MULE_EE
 
 ## [0.3.0] - Previous Release
 

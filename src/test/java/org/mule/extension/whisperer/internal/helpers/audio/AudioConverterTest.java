@@ -65,7 +65,7 @@ class AudioConverterTest {
         // When: Converting MP3 to WAV using JLayer (pure Java)
         AudioConverter.convertToWav(inputFile.getAbsolutePath(), outputWavFile.getAbsolutePath(), "mp3");
 
-        // Then: Output file exists and is 16kHz mono WAV
+        // Then: Output file exists and is valid WAV (preserves source sample rate/channels)
         assertTrue(outputWavFile.exists(), "Output WAV file should exist");
         assertTrue(outputWavFile.length() > 0, "Output WAV file should not be empty");
 
@@ -74,8 +74,8 @@ class AudioConverterTest {
         AudioFormat audioFormat = audioFileFormat.getFormat();
 
         assertEquals(AudioFileFormat.Type.WAVE, audioFileFormat.getType());
-        assertEquals(16000, (int) audioFormat.getSampleRate(), "Should be 16kHz");
-        assertEquals(1, audioFormat.getChannels(), "Should be mono");
+        assertTrue(audioFormat.getSampleRate() > 0, "Should have valid sample rate");
+        assertTrue(audioFormat.getChannels() > 0, "Should have valid channel count");
         assertEquals(16, audioFormat.getSampleSizeInBits(), "Should be 16-bit");
     }
 
@@ -98,7 +98,7 @@ class AudioConverterTest {
         // When: Converting M4A to WAV using ByteDeco FFmpeg
         AudioConverter.convertToWav(inputFile.getAbsolutePath(), outputWavFile.getAbsolutePath(), "m4a");
 
-        // Then: Output file exists and is 16kHz mono WAV
+        // Then: Output file exists and is valid WAV (preserves source sample rate/channels)
         assertTrue(outputWavFile.exists(), "Output WAV file should exist");
         assertTrue(outputWavFile.length() > 0, "Output WAV file should not be empty");
 
@@ -107,8 +107,8 @@ class AudioConverterTest {
         AudioFormat audioFormat = audioFileFormat.getFormat();
 
         assertEquals(AudioFileFormat.Type.WAVE, audioFileFormat.getType());
-        assertEquals(16000, (int) audioFormat.getSampleRate(), "Should be 16kHz");
-        assertEquals(1, audioFormat.getChannels(), "Should be mono");
+        assertTrue(audioFormat.getSampleRate() > 0, "Should have valid sample rate");
+        assertTrue(audioFormat.getChannels() > 0, "Should have valid channel count");
         assertEquals(16, audioFormat.getSampleSizeInBits(), "Should be 16-bit");
     }
 
