@@ -8,8 +8,8 @@
     <artifactId>mule-whisperer-connector</artifactId>
     <version>0.4.0-SNAPSHOT</version>
     <packaging>mule-extension</packaging>
-    <name>MuleSoft Whisperer Connector - Mule 4</name>
-    <description>MuleSoft Whisperer Connector provides capabilities to convert speech to text or text to speech.</description>
+    <name>MAC Whisperer Connector</name>
+    <description>MAC Whisperer Connector provides capabilities to convert speech to text or text to speech.</description>
     <url>https://mac-project.ai/docs/mac-whisperer/connector-overview</url>
     <scm>
         <connection>scm:git:git://github.com/MuleSoft-AI-Chain-Project/mule-whisperer-connector.git</connection>
@@ -171,31 +171,6 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-gpg-plugin</artifactId>
-                <version>1.5</version>
-                <executions>
-                    <execution>
-                        <id>sign-artifacts</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>sign</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.sonatype.central</groupId>
-                <artifactId>central-publishing-maven-plugin</artifactId>
-                <version>0.6.0</version>
-                <extensions>true</extensions>
-                <configuration>
-                    <publishingServerId>central</publishingServerId>
-                    <checksums>all</checksums>
-                    <deploymentName>MuleSoft Whisperer Connector Mule 4 Deployment</deploymentName>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven.surefire.version}</version>
                 <configuration>
@@ -204,6 +179,41 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>release-sign-artifacts</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>3.2.8</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <version>0.9.0</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <publishingServerId>central</publishingServerId>
+                            <checksums>all</checksums>
+                            <deploymentName>${project.artifactId}-${project.version}</deploymentName>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 	<repositories>
         <repository>
